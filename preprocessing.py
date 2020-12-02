@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from scipy.io import loadmat, savemat
 from tqdm import tqdm
 from shutil import copyfile
-import terma
+from lib import terma
 #from pmtools import plotting as pmt, notify
 
 
