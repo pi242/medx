@@ -1,34 +1,25 @@
-# import sklearn
 import torch
 from torchvision import transforms
 import torch.nn.functional as F
 from functools import partial
-# from sklearn import metrics
 import matplotlib.pyplot as plt
-#import torch
 import numpy as np
 import sys
 
-#from tensorboardX import SummaryWriter
 sys.path.insert(1, './../')
-# from load_data_saveidx import Physionet2017Dataset, CropWithPeak, ToTensorWithPeak
-fro, lib import load_data_saveidx
+from lib import load_data_saveidx as load_data
 from model import MobileNet
-#from MLP import MLP, MLP2
-# import sys
-# sys.stdout = open('interpret_chunks_pi1.txt', 'w')
-
 
 if __name__ == "__main__":
     #torch.set_num_threads(1)
     print("Number of command line args =", len(sys.argv))
     n_segments = int(sys.argv[1])
     model_weights = "model_params.torch"
-    home_dir = sys.argv[2]
+    home_dir = sys.argv[2].rstrip('/')
     testortrain = "test"
         
 
-    fout = open(home_dir + '/xai_results/interpret_chunks_pi2_lime_linear.txt', 'w+')
+    fout = open(home_dir + '/results/interpret_chunks_pi2_lime_linear.txt', 'w+')
     print("script started!!")
     fout.write("script started!!\n")
     print('Model weights = ' + model_weights)
@@ -37,13 +28,13 @@ if __name__ == "__main__":
     inputsize = 9000
     en_manualfeatures = False
     trans = (
-            transforms.Compose([CropWithPeak(inputsize)])
+            transforms.Compose([load_data.CropWithPeak(inputsize)])
         )
     kfolds = 5
     randomseed = 123
     splitnum = 0
 
-    data = Physionet2017Dataset(root_dir, transform=trans,
+    data = load_data.Physionet2017Dataset(root_dir, transform=trans,
             kfolds=kfolds,
             split_num=splitnum,
             val_size=0,
@@ -66,9 +57,9 @@ if __name__ == "__main__":
         print(torch.cuda.get_device_name(selected_gpu))
         torch.cuda.set_device(selected_gpu)
 
-    net = MobileNet(16, 4)
+    net = MobileNet.MobileNet(16, 4)
 
-    net.load_state_dict(torch.load(home_dir + '/' + model_weights, lambda s, v: s))
+    net.load_state_dict(torch.load(home_dir + '/model/' + model_weights, lambda s, v: s))
     _ = net.eval()
     
     if cuda_flag:
