@@ -9,6 +9,7 @@ import sys
 sys.path.insert(1, './../')
 from lib import load_data_saveidx as load_data
 from model import MobileNet
+from lime import lime_vector_linear
 
 if __name__ == "__main__":
     #torch.set_num_threads(1)
@@ -18,8 +19,8 @@ if __name__ == "__main__":
     home_dir = sys.argv[2].rstrip('/')
     testortrain = "test"
         
-
-    fout = open(home_dir + '/results/interpret_chunks_pi2_lime_linear.txt', 'w+')
+    resultsdirname = 'results'
+    fout = open(home_dir + f'/{resultsdirname}/interpret_chunks_pi2_lime_linear.txt', 'w+')
     print("script started!!")
     fout.write("script started!!\n")
     print('Model weights = ' + model_weights)
@@ -61,6 +62,8 @@ if __name__ == "__main__":
 
     net.load_state_dict(torch.load(home_dir + '/model/' + model_weights, lambda s, v: s))
     _ = net.eval()
+
+    print(net)
     
     if cuda_flag:
         net.cuda()
@@ -100,9 +103,7 @@ if __name__ == "__main__":
         
     print("LIME>>>")
     fout.write("LIME>>>\n")
-    sys.path.insert(1, home_dir + '/xai/lime_vector')
-    # sys.path.insert(1, './lime_vector')
-    from lime import lime_vector_linear
+    
 
     def segment_vec(vec, peaks, SEG):
         total = np.zeros(vec.shape)
@@ -122,14 +123,22 @@ if __name__ == "__main__":
         n_sample, n_feat = batch.shape
         if cuda_flag:
             preds = net(torch.as_tensor(batch.reshape(n_sample, 1, n_feat).astype(np.float32)).cuda())
+#            from torchsummary import summary
+#            print(batch.reshape(n_sample, 1, n_feat).shape)
+#            summary(net, (1, 1, 9000))
+
+            exit()  
         else:
             preds = net(torch.as_tensor(batch.reshape(n_sample, 1, n_feat).astype(np.float32)))
+#            from torchsummary import summary
+#            summary(net, torch.as_tensor(batch.reshape(n_sample, 1, n_feat).astype(np.float32)))
+#            exit()        
         
         probs = F.softmax(preds, dim=1)
         return probs.detach().cpu().numpy()
         
     # N = n_segments
-    indexes = [i for i in range(n_samples)][:SIZE]
+    indexes = [i for i in range(n_samples)][:100]
     # res_all = {j:{i:0 for i in range(n_segments)} for j in range(4)}
     res_all = dict([(j, dict([(i, 0) for i in range(n_segments + 1)])) for j in range(4)])
     res_pos = dict([(j, dict([(i, 0) for i in range(n_segments + 1)])) for j in range(4)])
@@ -148,6 +157,12 @@ if __name__ == "__main__":
         sample = input_data['data']
         peaks = input_data['peaks']
         pred_label = np.argmax(predict_func(np.expand_dims(sample, axis=0)))
+
+#        print(net)
+#        from torchsummary import summary
+#        summary(net, torch.tensor((1, 1, 9000)))
+#        exit()        
+
         label_counts[pred_label] += 1
         print(f'Pred label {pred_label}')
         # if sample.shape[0] > 9000:
@@ -255,16 +270,16 @@ if __name__ == "__main__":
     overlay_idx = 250
 
     plot_fig(overlay_idx, res_dict_all, 1, start_peak)
-    plt.savefig(home_dir + '/xai_results/LIME_linear_A_ALL_pi2.png')
+    plt.savefig(home_dir + f'/{resultsdirname}/LIME_linear_A_ALL_pi2.png')
 
     plot_fig(overlay_idx, res_dict_pos, 1, start_peak)
-    plt.savefig(home_dir + '/xai_results/LIME_linear_A_POS_pi2.png')
+    plt.savefig(home_dir + f'/{resultsdirname}/LIME_linear_A_POS_pi2.png')
 
     plot_fig(overlay_idx, res_dict_neg, 1, start_peak)
-    plt.savefig(home_dir + '/xai_results/LIME_linear_A_NEG_pi2.png')
+    plt.savefig(home_dir + f'/{resultsdirname}/LIME_linear_A_NEG_pi2.png')
 
     plot_fig(overlay_idx, res_dict_frac_pos, 1, start_peak)
-    plt.savefig(home_dir + '/xai_results/LIME_linear_A_FRAC_POS_pi2.png')
+    plt.savefig(home_dir + f'/{resultsdirname}/LIME_linear_A_FRAC_POS_pi2.png')
 
     # plot_fig(overlay_idx, SM_ALL, 1, start_peak)
     # plt.savefig(home_dir + '/xai_results/SM_A_ALL_' + str(n_segments) + '_' + model_weights + '_' + testortrain + '.png')
@@ -279,7 +294,7 @@ if __name__ == "__main__":
         plot_fig_concat(ax[one][two], overlay_idx, res_dict_all, i, start_peak)
         ax[one][two].set_title("LIME normalized segment importance for class: " + str(data.labels_list[i]))
     # plt.savefig(f'{home_dir}/xai_results/LIME_res6_all_{n_segments}_{model_weights}_{testortrain}.png')
-    plt.savefig(home_dir + '/xai_results/LIME_linear_pi2_all.png')
+    plt.savefig(home_dir + f'/{resultsdirname}/LIME_linear_pi2_all.png')
 
     f, ax = plt.subplots(2, 2, figsize=(16, 12))
     plt.subplots_adjust(hspace=0.3)
@@ -289,7 +304,7 @@ if __name__ == "__main__":
         print(one, two)
         plot_fig_concat(ax[one][two], overlay_idx, res_dict_pos, i, start_peak)
         ax[one][two].set_title("LIME normalized segment importance for class: " + str(data.labels_list[i]))
-    plt.savefig(home_dir + '/xai_results/LIME_linear_pi2_pos.png')
+    plt.savefig(home_dir + f'/{resultsdirname}/LIME_linear_pi2_pos.png')
 
     f, ax = plt.subplots(2, 2, figsize=(16, 12))
     plt.subplots_adjust(hspace=0.3)
@@ -299,7 +314,7 @@ if __name__ == "__main__":
         print(one, two)
         plot_fig_concat(ax[one][two], overlay_idx, res_dict_neg, i, start_peak)
         ax[one][two].set_title("LIME normalized segment importance for class: " + str(data.labels_list[i]))
-    plt.savefig(home_dir + '/xai_results/LIME_linear_pi2_neg.png')
+    plt.savefig(home_dir + f'/{resultsdirname}/LIME_linear_pi2_neg.png')
 
     f, ax = plt.subplots(2, 2, figsize=(16, 12))
     plt.subplots_adjust(hspace=0.3)
@@ -309,4 +324,4 @@ if __name__ == "__main__":
         print(one, two)
         plot_fig_concat(ax[one][two], overlay_idx, res_dict_frac_pos, i, start_peak)
         ax[one][two].set_title("LIME normalized segment importance for class: " + str(data.labels_list[i]))
-    plt.savefig(home_dir + '/xai_results/LIME_linear_pi2_frac_pos.png')
+    plt.savefig(home_dir + f'/{resultsdirname}/LIME_linear_pi2_frac_pos.png')

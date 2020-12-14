@@ -8,7 +8,7 @@ import sklearn.preprocessing
 from sklearn.utils import check_random_state
 # from skimage.color import gray2rgb
 
-from . import lime_base
+from lime import lime_base
 
 # def segmentation_func(vec):
 #     assert vec.size <= 9000

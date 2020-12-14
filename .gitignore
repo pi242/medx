@@ -3,3 +3,5 @@ __pycache__/
 data
 temp
 results
+.vscode/
+*.ipynb
