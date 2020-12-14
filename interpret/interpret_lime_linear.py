@@ -2,14 +2,15 @@ import torch
 from torchvision import transforms
 import torch.nn.functional as F
 from functools import partial
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 import sys
+import os
 
 sys.path.insert(1, './../')
 from lib import load_data_saveidx as load_data
 from model import MobileNet
-from lime import lime_vector_linear
+from lime import lime_vector_linear_RR as lime_vector_linear
 
 if __name__ == "__main__":
     #torch.set_num_threads(1)
@@ -43,7 +44,7 @@ if __name__ == "__main__":
             random_seed=randomseed,
             en_cache=False,
             manual_features=en_manualfeatures,
-            saveidx_dir=home_dir)
+            saveidx_dir=os.path.join(home_dir, 'model'))
     print("len of data =", len(data.labels))
     fout.write("len of data = " + str(len(data.labels)) + "\n")
 
@@ -62,8 +63,6 @@ if __name__ == "__main__":
 
     net.load_state_dict(torch.load(home_dir + '/model/' + model_weights, lambda s, v: s))
     _ = net.eval()
-
-    print(net)
     
     if cuda_flag:
         net.cuda()
@@ -123,22 +122,14 @@ if __name__ == "__main__":
         n_sample, n_feat = batch.shape
         if cuda_flag:
             preds = net(torch.as_tensor(batch.reshape(n_sample, 1, n_feat).astype(np.float32)).cuda())
-#            from torchsummary import summary
-#            print(batch.reshape(n_sample, 1, n_feat).shape)
-#            summary(net, (1, 1, 9000))
-
-            exit()  
         else:
             preds = net(torch.as_tensor(batch.reshape(n_sample, 1, n_feat).astype(np.float32)))
-#            from torchsummary import summary
-#            summary(net, torch.as_tensor(batch.reshape(n_sample, 1, n_feat).astype(np.float32)))
-#            exit()        
         
         probs = F.softmax(preds, dim=1)
         return probs.detach().cpu().numpy()
         
     # N = n_segments
-    indexes = [i for i in range(n_samples)][:100]
+    indexes = [i for i in range(n_samples)][:SIZE]
     # res_all = {j:{i:0 for i in range(n_segments)} for j in range(4)}
     res_all = dict([(j, dict([(i, 0) for i in range(n_segments + 1)])) for j in range(4)])
     res_pos = dict([(j, dict([(i, 0) for i in range(n_segments + 1)])) for j in range(4)])
@@ -197,7 +188,7 @@ if __name__ == "__main__":
     res_dict_neg = dict([(k, dict([(kk, v / label_counts[k]) for kk, v in res_neg[k].items()])) for k in res_neg.keys()])
     res_dict_frac_pos = dict([(k, dict([(kk, v / label_counts[k]) for kk, v in res_frac_pos[k].items()])) for k in res_frac_pos.keys()])
     
-    print("\n\n")
+    print("\n\nres_dict_all:")
     print(res_dict_all)
     print("\n\n")
     print(res_dict_pos)
@@ -212,7 +203,7 @@ if __name__ == "__main__":
     fout.write("\nFRAC_POS:\n" + str(res_dict_frac_pos) +"\n")
     fout.close()
 
-
+    """
     def normalize_dict(scores, m):
         return dict([(k, v / m) for k, v in scores.items()])
 
@@ -265,6 +256,8 @@ if __name__ == "__main__":
         plt.xticks([])
         plt.bar(np.arange(len(dummy)), dummy, width=1, color=[colors[segment[i]] for i in range(len(dummy))])
         plt.plot(data[overlay_idx]['data'][left:right] / np.max(data[overlay_idx]['data'][left:right]), color='r')
+    
+
     
     start_peak = 10
     overlay_idx = 250
@@ -325,3 +318,88 @@ if __name__ == "__main__":
         plot_fig_concat(ax[one][two], overlay_idx, res_dict_frac_pos, i, start_peak)
         ax[one][two].set_title("LIME normalized segment importance for class: " + str(data.labels_list[i]))
     plt.savefig(home_dir + f'/{resultsdirname}/LIME_linear_pi2_frac_pos.png')
+    """
+
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+
+plt.style.use('default')
+
+matplotlib.rcParams['figure.figsize'] = (10,8)
+matplotlib.rcParams['axes.grid'] = True
+matplotlib.rcParams['figure.autolayout'] = True
+matplotlib.rcParams['font.family'] = 'serif'
+matplotlib.rcParams['text.usetex'] = True
+matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}', r'\usepackage{amssymb}', r'\usepackage{amsfonts}']
+matplotlib.rcParams['grid.alpha'] = 0.5
+
+matplotlib.rcParams['font.size'] = 22
+matplotlib.rcParams['legend.fontsize'] = 20 
+matplotlib.rcParams['axes.labelsize'] = 22
+
+print(f'\n\n\n\n')
+print(res_dict_all)
+######################
+######################
+# SET VALUES HERE
+######################
+# lime_scores1 = {0: 0.1694197043806493, 1: 0.02197112555027639, 2: 0.047112163220616156, 3: 0.10284437567269593, 4: 0.08311217018257017, 5: 0.005992251727225272, 6: -0.02201567389965099, 7: 0.23163448330985995, 8: 0.4833801404228275}
+lime_scores1 = res_dict_all[1]
+x = sorted(list(lime_scores1.keys()))
+y1 = np.array([lime_scores1[k] for k in x])
+# y1 /= np.max(y1)
+
+# lime_scores2 = {0: 0.38921963048211233, 1: -0.04763070817831745, 2: 0.03470845983156371, 3: 0.04529735198274205, 4: 0.010993622117237556, 5: -0.018384015094872516, 6: -0.005935935932433382, 7: 0.30581411564347816, 8: 0.04207242775259194}
+lime_scores2 = res_dict_all[0]
+y2 = np.array([lime_scores2[k] for k in x])
+# y2 /= np.max(y2)
+# lime_scores3 = {0: 0.07400122537695478, 1: 0.04740624385416944, 2: 0.02795232185548423, 3: -0.003176540446731818, 4: 0.005318407656864543, 5: 0.034605076023498986, 6: 0.04729659760765272, 7: 0.09229189493505913, 8: 0.18669307028248247}
+lime_scores3 = res_dict_all[2]
+y3 = np.array([lime_scores3[k] for k in x])
+
+n_weights = y2
+a_weights = y1
+o_weights = y3
+######################
+######################
+
+x = np.arange(len(n_weights)).astype(float)  # the label locations
+x[-1] += 0.5 # Move the RR interval group
+width = 0.25  # the width of the bars
+fig, ax = plt.subplots()
+rects1 = ax.bar(x - width, n_weights, width, label='Normal Sinus Rhythm (S)')
+rects2 = ax.bar(x        , a_weights, width, label='Atrial Fibrillation (A)')
+rects3 = ax.bar(x + width, o_weights, width, label='Other Arrhythmia (O)')
+# RR interval spearation line
+ax.axvline(x[-1] - 0.75, c='k', lw=1.5, ls='-', alpha=0.8)
+ax.xaxis.grid() # horizontal grid only
+
+def autolabel(rects):
+    for rect in rects:
+        h = rect.get_height()
+        place = 0.05 + h if h >= 0 else h - 0.05
+        ax.text(rect.get_x()+rect.get_width()/2., place, '%.2f'%(h),
+                ha='center', va='bottom',rotation='vertical')
+# autolabel(rects1)
+# autolabel(rects2)
+# autolabel(rects3)
+
+# Labels
+ax.set_xlabel('Feature')
+ax.set_ylabel('Average LIME weight')
+
+ax.axhline(0, c='k', lw=1.5, ls='-', alpha=0.8)
+
+# Legend
+ax.legend()
+
+# X ticks
+ticks = [f"Seg {f:.0f}" for f in x]
+ticks[-1] = 'RR'    
+plt.xticks(x, ticks)
+plt.xticks(rotation=45, ha='right')
+
+plt.show()
+
+fig.savefig(home_dir + f'/{resultsdirname}/lime_global_nseg{n_segments}.png')#, bbox_inches = 'tight', pad_inches = 0)
