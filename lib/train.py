@@ -27,13 +27,15 @@ from torch.utils.data import DataLoader
 from torch.autograd import Variable
 from torchvision import transforms
 from tensorboardX import SummaryWriter
-from load_data import Physionet2017Dataset, Crop, ToTensor
+from load_data_saveidx import Physionet2017Dataset, Crop, ToTensor
 
 #from ResNet import ResNet
 #from ResNetv2 import ResNetv2
 #from ConvNet import VGG, AlexNet
 #from Inception import Inception
 #from ResInception import ResInception
+import sys
+sys.path.insert(1, './../model')
 from MobileNet import MobileNet
 #from MLP import MLP, MLP2
 from collections import OrderedDict
@@ -365,7 +367,7 @@ if __name__ == "__main__":
 
         ### Log dir
         logdir = (
-            "runs/"
+            "../runs/"
             + (("%s___" % logdir_comment) if len(logdir_comment) else "")
             + "epochs_%d" % num_epochs
             + "__batchsize_%d" % batch_size
@@ -485,14 +487,14 @@ if __name__ == "__main__":
         net.print_net_parameters_num()
 
         ### Load data
-        root_dir = os.path.join("/gpfs/home/pivaturi/data/", datadir)
+        # root_dir = os.path.join("/gpfs/home/pivaturi/data/", datadir)
         trans = (
             transforms.Compose([ToTensor(0)])
             if en_manualfeatures
             else transforms.Compose([Crop(args.inputsize), ToTensor(1)])
         )
         train_dataset = Physionet2017Dataset(
-            root_dir,
+            datadir,
             transform=trans,
             kfolds=kfolds,
             split_num=splitnum,
@@ -501,10 +503,11 @@ if __name__ == "__main__":
             random_seed=randomseed,
             en_cache=True,
             manual_features=en_manualfeatures,
+            saveidx_dir=os.path.join('./../', 'model')
         )
 
         test_dataset = Physionet2017Dataset(
-            root_dir,
+            datadir,
             transform=trans,
             kfolds=kfolds,
             split_num=splitnum,
@@ -513,6 +516,7 @@ if __name__ == "__main__":
             random_seed=randomseed,
             en_cache=True,
             manual_features=en_manualfeatures,
+            saveidx_dir=os.path.join('./../', 'model')
         )
 
         if args.val != 0:

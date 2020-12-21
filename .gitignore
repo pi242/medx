@@ -5,3 +5,5 @@ temp
 results
 .vscode/
 *.ipynb
+lib/__pycache__
+runs
