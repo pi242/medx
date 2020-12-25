@@ -11,6 +11,7 @@ sys.path.insert(1, './../')
 from lib import load_data_saveidx as load_data
 from model import MobileNet
 from lime import lime_vector_linear_RR as lime_vector_linear
+from utils import *
 
 if __name__ == "__main__":
     #torch.set_num_threads(1)
@@ -21,9 +22,9 @@ if __name__ == "__main__":
     testortrain = "test"
         
     resultsdirname = 'results'
-    fout = open(home_dir + f'/{resultsdirname}/interpret_chunks_pi2_lime_linear.txt', 'w+')
+    #fout = open(home_dir + f'/{resultsdirname}/interpret_chunks_pi2_lime_linear.txt', 'w+')
     print("script started!!")
-    fout.write("script started!!\n")
+    #fout.write("script started!!\n")
     print('Model weights = ' + model_weights)
     root_dir = home_dir + '/data/training2017_raligned/'
 
@@ -46,10 +47,10 @@ if __name__ == "__main__":
             manual_features=en_manualfeatures,
             saveidx_dir=os.path.join(home_dir, 'model'))
     print("len of data =", len(data.labels))
-    fout.write("len of data = " + str(len(data.labels)) + "\n")
+    #fout.write("len of data = " + str(len(data.labels)) + "\n")
 
     print("labels:", data.labels_list)
-    fout.write("labels:" + str(data.labels_list) + "\n")
+    #fout.write("labels:" + str(data.labels_list) + "\n")
 
     cuda_flag = torch.cuda.is_available()
     print(cuda_flag)
@@ -66,30 +67,6 @@ if __name__ == "__main__":
     
     if cuda_flag:
         net.cuda()
-    
-    def segmentation_fn(vec, peaks, active_segments):
-        current = 0 
-        n_segments = len(active_segments)
-        segments = np.zeros_like(vec, dtype=int)
-
-        for next_peak in peaks:
-            size = next_peak - current
-            
-            segment_size = size // n_segments
-            rest = size % n_segments 
-            
-            for i in range(n_segments):
-                if active_segments[i] > 0:
-                    s = current + i*segment_size
-                    e = s + segment_size
-                    segments[s:e] = 1
-            
-            if rest > 0 and active_segments[i] > 0:
-                segments[e:e+rest] = 1
-            
-            current = next_peak
-            
-        return segments, n_segments
 
     n_samples = data.labels.shape[0]
     # scores = []
@@ -101,33 +78,8 @@ if __name__ == "__main__":
     
         
     print("LIME>>>")
-    fout.write("LIME>>>\n")
-    
-
-    def segment_vec(vec, peaks, SEG):
-        total = np.zeros(vec.shape)
-        #print(total.shape)
-        for i in range(SEG):
-            p = [0] * SEG
-            p[i] = 1
-            #print(p)
-            a, b = segmentation_fn(vec, peaks, p)
-            total += np.array(a) * (i)
-        return total
-
-
-
-    def predict_func(batch):
-        labels = np.zeros(batch.shape[0], dtype=int)
-        n_sample, n_feat = batch.shape
-        if cuda_flag:
-            preds = net(torch.as_tensor(batch.reshape(n_sample, 1, n_feat).astype(np.float32)).cuda())
-        else:
-            preds = net(torch.as_tensor(batch.reshape(n_sample, 1, n_feat).astype(np.float32)))
-        
-        probs = F.softmax(preds, dim=1)
-        return probs.detach().cpu().numpy()
-        
+    #fout.write("LIME>>>\n")
+          
     # N = n_segments
     indexes = [i for i in range(n_samples)][:SIZE]
     # res_all = {j:{i:0 for i in range(n_segments)} for j in range(4)}
@@ -139,7 +91,7 @@ if __name__ == "__main__":
     #print(res_all)
     for idx in indexes:
         print(idx, len(indexes))
-        fout.write(str(idx) + "->")
+        #fout.write(str(idx) + "->")
         input_data = data[idx]
         #print(idx)
         true_label = input_data['label']
@@ -197,11 +149,11 @@ if __name__ == "__main__":
     print("\n\n")
     print(res_dict_frac_pos)
     
-    fout.write("\nALL:\n" + str(res_dict_all) +"\n")
-    fout.write("\nPOS:\n" + str(res_dict_pos) +"\n")
-    fout.write("\nNEG:\n" + str(res_dict_neg) +"\n")
-    fout.write("\nFRAC_POS:\n" + str(res_dict_frac_pos) +"\n")
-    fout.close()
+    #fout.write("\nALL:\n" + str(res_dict_all) +"\n")
+    #fout.write("\nPOS:\n" + str(res_dict_pos) +"\n")
+    #fout.write("\nNEG:\n" + str(res_dict_neg) +"\n")
+    #fout.write("\nFRAC_POS:\n" + str(res_dict_frac_pos) +"\n")
+    #fout.close()
 
     """
     def normalize_dict(scores, m):
