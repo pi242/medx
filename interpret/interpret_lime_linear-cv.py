@@ -98,6 +98,17 @@ if __name__ == "__main__":
 
         if cuda_flag:
             net.cuda()
+        
+        def predict_func(batch):
+            # labels = np.zeros(batch.shape[0], dtype=int)
+            n_sample, n_feat = batch.shape
+            if cuda_flag:
+                preds = net(torch.as_tensor(batch.reshape(n_sample, 1, n_feat).astype(np.float32)).cuda())
+            else:
+                preds = net(torch.as_tensor(batch.reshape(n_sample, 1, n_feat).astype(np.float32)))
+            
+            probs = F.softmax(preds, dim=1)
+            return probs.detach().cpu().numpy()
 
         #print(res_all)
         for idx in tqdm.tqdm(indexes):
