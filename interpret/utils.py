@@ -109,7 +109,8 @@ def masking_linear_interpolation_cont(vec, peaks, active_segments):
 def fraction_AF(confmat):
     total = np.sum(confmat, axis=1)
     af = confmat[:, 1]
-    return af.astype(float) / total
+    res = af.astype(float) / total
+    return np.append(res, [np.sum(af).astype(float) / np.sum(total)])
 
 def resample_by_interpolation(signal, target_length):
     # output_fs = len(signal)
@@ -164,3 +165,18 @@ def align(sample):
         current = next_peak
         
     return np.asarray(aligned)
+
+def create_segment_rr(vec_rr, n_segments):
+    size = len(vec_rr)
+    segment_size = size // n_segments
+    # print("bvlala", size, segment_size)
+    rest = size % n_segments
+    segments = [[-1, -1] for i in range(n_segments)]
+    for i in range(n_segments):
+        s = i*segment_size
+        e = s + segment_size
+        segments[i] = [s, e]
+        # print(s, e)
+    if rest > 0:
+        segments[i][1] = e + rest
+    return segments

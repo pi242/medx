@@ -37,6 +37,10 @@ from load_data_saveidx import Physionet2017Dataset, Crop, ToTensor
 import sys
 sys.path.insert(1, './../model')
 from MobileNet import MobileNet
+from ConvNet import *
+from ResNet import *
+from ResNetv2 import *
+from Inception import *
 #from MLP import MLP, MLP2
 from collections import OrderedDict
 from utils import get_gpu_memory_map
