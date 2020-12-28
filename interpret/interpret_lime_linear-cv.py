@@ -39,7 +39,7 @@ if __name__ == "__main__":
     print("Number of command line args =", len(sys.argv))
     n_segments = int(sys.argv[1])
     model_weights = "model_params.torch"
-    home_dir = sys.argv[2].rstrip('/')
+    home_dir = ('./../').rstrip('/')
     testortrain = "test"
 
     cuda_flag = torch.cuda.is_available()
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         print("labels:", data.labels_list)
 
         n_samples = data.labels.shape[0]
-        SIZE = n_samples
+        SIZE = n_samples#200
         print("LIME>>>")
         indexes = [i for i in range(n_samples)][:SIZE]
 
@@ -205,9 +205,9 @@ if __name__ == "__main__":
     x[-1] += 0.5 # Move the RR interval group
     width = 0.25  # the width of the bars
     fig, ax = plt.subplots()
-    rects1 = ax.bar(x - width, n_weights, width, label='Normal Sinus Rhythm (S)', yerr=np.std(lime_scores2, axis=0))
-    rects2 = ax.bar(x        , a_weights, width, label='Atrial Fibrillation (A)', yerr=np.std(lime_scores1, axis=0))
-    rects3 = ax.bar(x + width, o_weights, width, label='Other Arrhythmia (O)', yerr=np.std(lime_scores3, axis=0))
+    rects1 = ax.bar(x - width, n_weights, width, label='Normal Sinus Rhythm (S)', yerr=np.std(lime_scores2, axis=0), hatch=2*"/", alpha=.99)
+    rects2 = ax.bar(x        , a_weights, width, label='Atrial Fibrillation (A)', yerr=np.std(lime_scores1, axis=0), hatch=2*".", alpha=.99)
+    rects3 = ax.bar(x + width, o_weights, width, label='Other Arrhythmia (O)', yerr=np.std(lime_scores3, axis=0), hatch=2*"X", alpha=.99)
     # RR interval spearation line
     ax.axvline(x[-1] - 0.75, c='k', lw=1.5, ls='-', alpha=0.8)
     ax.xaxis.grid() # horizontal grid only

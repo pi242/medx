@@ -83,7 +83,7 @@ if __name__ == "__main__":
     # scores = []
     # score = np.zeros(n_samples)
     # labels = np.zeros(n_samples)
-    SIZE = n_samples
+    SIZE = 200 #n_samples
     # indexes = [i for i in range(n_samples)]
     # indexes = indexes[:SIZE]
     
@@ -331,9 +331,14 @@ x = np.arange(len(n_weights)).astype(float)  # the label locations
 x[-1] += 0.5 # Move the RR interval group
 width = 0.25  # the width of the bars
 fig, ax = plt.subplots()
-rects1 = ax.bar(x - width, n_weights, width, label='Normal Sinus Rhythm (S)')
-rects2 = ax.bar(x        , a_weights, width, label='Atrial Fibrillation (A)')
-rects3 = ax.bar(x + width, o_weights, width, label='Other Arrhythmia (O)')
+# rects1 = ax.bar(x - width, n_weights, width, label='Normal Sinus Rhythm (S)')
+# rects2 = ax.bar(x        , a_weights, width, label='Atrial Fibrillation (A)')
+# rects3 = ax.bar(x + width, o_weights, width, label='Other Arrhythmia (O)')
+
+rects1 = ax.bar(x - width, n_weights, width, label='Normal Sinus Rhythm (S)', hatch=2*"/", alpha=.99)
+rects2 = ax.bar(x        , a_weights, width, label='Atrial Fibrillation (A)', hatch=2*".", alpha=.99)
+rects3 = ax.bar(x + width, o_weights, width, label='Other Arrhythmia (O)', hatch=2*"X", alpha=.99)
+
 # RR interval spearation line
 ax.axvline(x[-1] - 0.75, c='k', lw=1.5, ls='-', alpha=0.8)
 ax.xaxis.grid() # horizontal grid only
@@ -365,4 +370,4 @@ plt.xticks(rotation=45, ha='right')
 
 plt.show()
 
-fig.savefig(home_dir + f'/{resultsdirname}/lime_global_nseg{n_segments}.png')#, bbox_inches = 'tight', pad_inches = 0)
+fig.savefig(home_dir + f'/{resultsdirname}/lime_global_nseg{n_segments}.pdf')#, bbox_inches = 'tight', pad_inches = 0)

@@ -507,7 +507,7 @@ if __name__ == "__main__":
             random_seed=randomseed,
             en_cache=True,
             manual_features=en_manualfeatures,
-            saveidx_dir=os.path.join('./../', 'model')
+            saveidx_dir=logdir
         )
 
         test_dataset = Physionet2017Dataset(
@@ -520,7 +520,7 @@ if __name__ == "__main__":
             random_seed=randomseed,
             en_cache=True,
             manual_features=en_manualfeatures,
-            saveidx_dir=os.path.join('./../', 'model')
+            saveidx_dir=logdir
         )
 
         if args.val != 0:
